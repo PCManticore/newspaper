@@ -33,6 +33,16 @@ class NodeTextExclusion:
         'detailImageDesc',
         'credits',
     }
+    PAGE_NAVIGATION = {
+        '« previous post | next post »',
+    }
+    IGNORED_CLASSES = {
+        'audioplayer_container',
+        'postfeedback',
+    }
+
+    def _has_ignored_class(self, node):
+        return set(node.classes).intersection(self.IGNORED_CLASSES)
 
     def _has_ads(self, node):
         return node.tag == 'div' and set(node.classes).intersection(self.AD_CLASSES)
@@ -46,14 +56,23 @@ class NodeTextExclusion:
         """
         return node.tag == 'span' and set(node.classes).intersection(self.OBJECT_DESCRIPTIONS)
 
+    def _looks_like_page_navigation(self, node):
+        """Heuristics against page pagination nodes"""
+        return node.text.strip() in self.PAGE_NAVIGATION
+
     def is_excluded(self, node):
         """Check if the given node should be completely excluded from the output"""
         if node.tag in self.EXCLUDED_TAGS:
             return True
-        if self._has_ads(node):
-            return True
-        if self._looks_like_object_description(node):
-            return True
+        filter_methods = [
+            self._has_ads,
+            self._looks_like_object_description,
+            self._looks_like_page_navigation,
+            self._has_ignored_class,
+        ]
+        for method in filter_methods:
+            if method(node):
+                return True
         return False
 
 

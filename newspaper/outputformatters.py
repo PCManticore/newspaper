@@ -21,6 +21,7 @@ class NodeTextExclusion:
 
     EXCLUDED_TAGS = {
         'figure',
+        'figcaption',
     }
     AD_CLASSES = {
         'js_ad-mobile-dynamic',
@@ -60,11 +61,18 @@ class NodeTextExclusion:
         """Heuristics against page pagination nodes"""
         return node.text.strip() in self.PAGE_NAVIGATION
 
-    def is_excluded(self, node):
-        """Check if the given node should be completely excluded from the output"""
+    def _is_tag_excluded(self, node):
         if node.tag in self.EXCLUDED_TAGS:
             return True
+        parent = node.getparent()
+        if parent and parent.tag in self.EXCLUDED_TAGS:
+            return True
+        return False
+
+    def is_excluded(self, node):
+        """Check if the given node should be completely excluded from the output"""
         filter_methods = [
+            self._is_tag_excluded,
             self._has_ads,
             self._looks_like_object_description,
             self._looks_like_page_navigation,

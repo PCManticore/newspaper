@@ -65,9 +65,8 @@ class DocumentCleaner(object):
         doc_to_clean = self.remove_nodes_regex(doc_to_clean,
                                                self.facebook_braodcasting_re)
         doc_to_clean = self.remove_nodes_regex(doc_to_clean, self.twitter_re)
-        doc_to_clean = self.clean_para_spans(doc_to_clean)
+        doc_to_clean = self.clean_paragraphs(doc_to_clean)
         doc_to_clean = self.div_to_para(doc_to_clean, 'div')
-        doc_to_clean = self.div_to_para(doc_to_clean, 'span')
         return doc_to_clean
 
     def clean_body_classes(self, doc):
@@ -143,10 +142,9 @@ class DocumentCleaner(object):
                 self.parser.remove(node)
         return doc
 
-    def clean_para_spans(self, doc):
-        spans = self.parser.css_select(doc, 'p span')
-        for item in spans:
-            self.parser.drop_tag(item)
+    def clean_paragraphs(self, doc):
+        for elem in self.parser.css_select(doc, 'p'):
+            self.parser.drop_tag(elem)
         return doc
 
     def get_flushed_buffer(self, replacement_text, doc):

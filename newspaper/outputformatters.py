@@ -21,6 +21,7 @@ class NodeTextExclusion:
 
     EXCLUDED_TAGS = {
         'figure',
+        'span',
     }
     AD_CLASSES = {
         'js_ad-mobile-dynamic',
@@ -35,7 +36,7 @@ class NodeTextExclusion:
     def is_excluded(self, node):
         """Check if the given node should be completely excluded from the output"""
         if node.tag in self.EXCLUDED_TAGS:
-            return None
+            return True
         if node.tag == 'div':
             if self._has_ads(node):
                 return True
@@ -52,17 +53,18 @@ class NodeTextExtractor:
         if self._exclusion.is_excluded(node):
             return None
 
-        try:
-            txt = self._parser.getText(node)
-        except ValueError as err:  # lxml error
-            log.info('%s ignoring lxml node error: %s', __title__, err)
-            return
+        filtered_nodes = [
+            child for child in node.iter()
+            if not self._exclusion.is_excluded(child)
+        ]
 
-        if txt:
-            txt = unescape(txt)
-            txt_lis = innerTrim(txt).split(r'\n')
-            txt_lis = [n.strip(' ') for n in txt_lis]
-            return txt_lis
+        text_elements = [
+            innerTrim(unescape(child.text))
+            for child in filtered_nodes if child.text
+        ]
+        for text_element in text_elements:
+            parts = filter(None, text_element.split(r'\n'))
+            yield from parts
 
 
 class OutputFormatter(object):

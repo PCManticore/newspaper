@@ -65,7 +65,7 @@ class DocumentCleaner(object):
         doc_to_clean = self.remove_nodes_regex(doc_to_clean,
                                                self.facebook_braodcasting_re)
         doc_to_clean = self.remove_nodes_regex(doc_to_clean, self.twitter_re)
-        doc_to_clean = self.clean_paragraphs(doc_to_clean)
+        doc_to_clean = self.clean_paragraphs_and_spans(doc_to_clean)
         doc_to_clean = self.div_to_para(doc_to_clean, 'div')
         return doc_to_clean
 
@@ -142,8 +142,8 @@ class DocumentCleaner(object):
                 self.parser.remove(node)
         return doc
 
-    def clean_paragraphs(self, doc):
-        for elem in self.parser.css_select(doc, 'p'):
+    def clean_paragraphs_and_spans(self, doc):
+        for elem in self.parser.css_select(doc, 'p span'):
             self.parser.drop_tag(elem)
         return doc
 

@@ -21,7 +21,6 @@ class NodeTextExclusion:
 
     EXCLUDED_TAGS = {
         'figure',
-        'span',
     }
     AD_CLASSES = {
         'js_ad-mobile-dynamic',
@@ -29,17 +28,32 @@ class NodeTextExclusion:
         'ad-mobile-dynamic',
         'movable-ad',
     }
+    OBJECT_DESCRIPTIONS = {
+        'bold',
+        'detailImageDesc',
+        'credits',
+    }
 
     def _has_ads(self, node):
         return node.tag == 'div' and set(node.classes).intersection(self.AD_CLASSES)
+
+    def _looks_like_object_description(self, node):
+        """Some sites are using <span> for image or text descriptions, which we don't want
+
+        Usually we can't remove <span> altogether, and there is no other hook
+        to look for other than looking at the classes themselves, which feels wrong
+        as we'd have to add as many classes as we'd find in the future.
+        """
+        return node.tag == 'span' and set(node.classes).intersection(self.OBJECT_DESCRIPTIONS)
 
     def is_excluded(self, node):
         """Check if the given node should be completely excluded from the output"""
         if node.tag in self.EXCLUDED_TAGS:
             return True
-        if node.tag == 'div':
-            if self._has_ads(node):
-                return True
+        if self._has_ads(node):
+            return True
+        if self._looks_like_object_description(node):
+            return True
         return False
 
 

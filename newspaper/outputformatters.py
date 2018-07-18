@@ -36,6 +36,7 @@ class NodeTextExclusion:
     }
     PAGE_NAVIGATION = {
         '« previous post | next post »',
+        'prevnext',
     }
     IGNORED_CLASSES = {
         'audioplayer_container',
@@ -59,7 +60,11 @@ class NodeTextExclusion:
 
     def _looks_like_page_navigation(self, node):
         """Heuristics against page pagination nodes"""
-        return node.text.strip() in self.PAGE_NAVIGATION
+        if (node.text or '').strip() in self.PAGE_NAVIGATION:
+            return True
+        if node.tag == 'p' and dict(node.items()).get('id') in self.PAGE_NAVIGATION:
+            return True
+        return False
 
     def _is_tag_excluded(self, node):
         if node.tag in self.EXCLUDED_TAGS:

@@ -7,6 +7,7 @@ __author__ = 'Lucas Ou-Yang'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2014, Lucas Ou-Yang'
 
+from itertools import chain
 from html import unescape
 import logging
 
@@ -14,6 +15,54 @@ from .text import innerTrim
 
 
 log = logging.getLogger(__name__)
+
+
+class NodeTextExclusion:
+
+    EXCLUDED_TAGS = {
+        'figure',
+    }
+    AD_CLASSES = {
+        'js_ad-mobile-dynamic',
+        'js_ad-dynamic',
+        'ad-mobile-dynamic',
+        'movable-ad',
+    }
+
+    def _has_ads(self, node):
+        return node.tag == 'div' and set(node.classes).intersection(self.AD_CLASSES)
+
+    def is_excluded(self, node):
+        """Check if the given node should be completely excluded from the output"""
+        if node.tag in self.EXCLUDED_TAGS:
+            return None
+        if node.tag == 'div':
+            if self._has_ads(node):
+                return True
+        return False
+
+
+class NodeTextExtractor:
+
+    def __init__(self, parser):
+        self._parser = parser
+        self._exclusion = NodeTextExclusion()
+
+    def extract_text(self, node):
+        if self._exclusion.is_excluded(node):
+            return None
+
+        try:
+            txt = self._parser.getText(node)
+        except ValueError as err:  # lxml error
+            log.info('%s ignoring lxml node error: %s', __title__, err)
+            return
+
+        if txt:
+            txt = unescape(txt)
+            txt_lis = innerTrim(txt).split(r'\n')
+            txt_lis = [n.strip(' ') for n in txt_lis]
+            return txt_lis
 
 
 class OutputFormatter(object):
@@ -24,6 +73,7 @@ class OutputFormatter(object):
         self.parser = self.config.get_parser()
         self.language = config.language
         self.stopwords_class = config.stopwords_class
+        self._extractor = NodeTextExtractor(self.parser)
 
     def update_language(self, meta_lang):
         '''Required to be called before the extraction process in some
@@ -57,24 +107,15 @@ class OutputFormatter(object):
         self.remove_empty_tags()
         self.remove_trailing_media_div()
         text = self.convert_to_text()
-        # print(self.parser.nodeToString(self.get_top_node()))
         return (text, html)
 
     def convert_to_text(self):
-        txts = []
-        for node in list(self.get_top_node()):
-            try:
-                txt = self.parser.getText(node)
-            except ValueError as err:  # lxml error
-                log.info('%s ignoring lxml node error: %s', __title__, err)
-                txt = None
+        text_elements = filter(
+            None,
+            (self._extractor.extract_text(node) for node in self.get_top_node())
+        )
 
-            if txt:
-                txt = unescape(txt)
-                txt_lis = innerTrim(txt).split(r'\n')
-                txt_lis = [n.strip(' ') for n in txt_lis]
-                txts.extend(txt_lis)
-        return '\n\n'.join(txts)
+        return '\n\n'.join(chain.from_iterable(text_elements))
 
     def convert_to_html(self):
         cleaned_node = self.parser.clean_article_html(self.get_top_node())

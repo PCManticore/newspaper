@@ -344,6 +344,11 @@ class ContentExtractor(object):
         filter_title = filter_regex.sub('', title).lower()
         if filter_title_text_h1 == filter_title:
             title = title_text_h1
+        # In some other cases the title extracted from `title` is not
+        # the actual title, but the one from <h1> is
+        if len(filter_title.split(' ')) == 1:
+            if len(filter_title_text_h1.split(' ')) > 1:
+                title = title_text_h1
 
         return title
 

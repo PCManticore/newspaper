@@ -250,6 +250,8 @@ class ContentExtractor(object):
         # A couple of specific elements with titles
         for elem in doc.cssselect('div[class=blogTitle]'):
             titles.append(elem.text)
+        for elem in doc.cssselect('div[class=title]'):
+            titles.append(elem.text)
         return titles
 
     def get_title(self, doc):

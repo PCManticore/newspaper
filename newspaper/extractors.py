@@ -248,9 +248,10 @@ class ContentExtractor(object):
         titles = [self.parser.getText(tag) for tag in title_elements]
 
         # A couple of specific elements with titles
-        for elem in doc.cssselect('div[class=blogTitle]'):
-            titles.append(elem.text)
-        for elem in doc.cssselect('div[class=title]'):
+        for potential_title in ('blogTitle', 'title'):
+            for elem in doc.cssselect(f'div[class={potential_title}]'):
+                titles.append(elem.text)
+        for elem in doc.cssselect(f'h2[class=post-title]'):
             titles.append(elem.text)
         return titles
 

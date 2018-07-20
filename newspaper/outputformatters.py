@@ -42,6 +42,8 @@ class NodeTextExclusion:
     IGNORED_CLASSES = {
         'audioplayer_container',
         'postfeedback',
+        'name-title',
+        'verify-in-keybase',
     }
     IGNORED_TEXT = re.compile(
         'Permalink|(Share link)'
@@ -73,10 +75,9 @@ class NodeTextExclusion:
     def _is_tag_excluded(self, node):
         if node.tag in self.EXCLUDED_TAGS:
             return True
+
         parent = node.getparent()
-        if parent is not None and parent.tag in self.EXCLUDED_TAGS:
-            return True
-        return False
+        return parent is not None and parent.tag in self.EXCLUDED_TAGS
 
     def _ignored_by_content(self, node):
         if node.text:

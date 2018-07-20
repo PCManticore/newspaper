@@ -365,9 +365,8 @@ class ContentExtractor(object):
             title = title_text_h1
         # In some other cases the title extracted from `title` is not
         # the actual title, but the one from <h1> is
-        if len(filter_title.split(' ')) == 1:
-            if len(filter_title_text_h1.split(' ')) > 1:
-                title = title_text_h1
+        if len(filter_title_text_h1.split(' ')) > len(title.split(' ')):
+            title = title_text_h1
         return title
 
     def split_title(self, title, splitter, hint=None):

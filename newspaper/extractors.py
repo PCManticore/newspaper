@@ -306,7 +306,7 @@ class ContentExtractor(object):
         filter_title_text_fb = filter_regex.sub('', title_text_fb).lower()
 
         # check for better alternatives for title_text and possibly skip splitting
-        if title_text_h1 == title_text:
+        if title_text_h1 and title_text_h1 == title_text:
             used_delimeter = True
         elif filter_title_text_h1 and filter_title_text_h1 == filter_title_text_fb:
             title_text = title_text_h1
@@ -316,10 +316,14 @@ class ContentExtractor(object):
                 and len(title_text_h1) > len(title_text_fb):
             title_text = title_text_h1
             used_delimeter = True
-        elif filter_title_text_fb and filter_title_text_fb != filter_title_text \
-                and filter_title_text.startswith(filter_title_text_fb):
-            title_text = title_text_fb
-            used_delimeter = True
+        elif filter_title_text_fb and filter_title_text_fb != filter_title_text:
+            if not filter_title_text:
+                title_text = title_text_fb
+                used_delimeter = True
+            else:
+                if filter_title_text.startswith(filter_title_text_fb):
+                    title_text = title_text_fb
+                    used_delimeter = True
 
         # split title with |
         if not used_delimeter and '|' in title_text:

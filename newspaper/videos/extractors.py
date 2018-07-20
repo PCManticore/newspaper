@@ -16,9 +16,9 @@ class VideoExtractor(object):
         self.movies = []
 
     def get_embed_code(self, node):
-        return "".join([
+        return "".join(
             line.strip()
-            for line in self.parser.nodeToString(node).splitlines()])
+            for line in self.parser.nodeToString(node).splitlines())
 
     def get_embed_type(self, node):
         return self.parser.getTag(node)

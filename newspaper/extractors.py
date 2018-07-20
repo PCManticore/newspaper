@@ -288,7 +288,7 @@ class ContentExtractor(object):
             if len(title_text_h1.split(' ')) <= 2:
                 title_text_h1 = ''
             # clean double spaces
-            title_text_h1 = ' '.join([x for x in title_text_h1.split() if x])
+            title_text_h1 = ' '.join(x for x in title_text_h1.split() if x)
 
         # title from og:title
         title_text_fb = (

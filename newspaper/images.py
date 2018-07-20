@@ -78,8 +78,8 @@ def clean_url(url):
     """Url quotes unicode data out of urls
     """
     url = url.encode('utf8')
-    url = ''.join([urllib.parse.quote(c)
-                  if ord(c) >= 127 else c for c in url.decode('utf-8')])
+    url = ''.join(urllib.parse.quote(c)
+                  if ord(c) >= 127 else c for c in url.decode('utf-8'))
     return url
 
 

@@ -248,7 +248,7 @@ class Article(object):
             self.clean_top_node = copy.deepcopy(self.top_node)
 
             text, article_html = output_formatter.get_formatted(
-                self.top_node)
+                self.top_node, title)
             self.set_article_html(article_html)
             self.set_text(text)
 

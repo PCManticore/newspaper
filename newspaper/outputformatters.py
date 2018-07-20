@@ -95,7 +95,7 @@ class NodeTextExtractor:
         self._parser = parser
         self._exclusion = NodeTextExclusion()
 
-    def extract_text(self, node):
+    def extract_text(self, node, title):
         if self._exclusion.is_excluded(node):
             return None
 
@@ -110,7 +110,10 @@ class NodeTextExtractor:
         ]
         for text_element in text_elements:
             parts = filter(None, text_element.split(r'\n'))
-            yield from parts
+            for part in parts:
+                if title and part == title:
+                    continue
+                yield part
 
 
 class OutputFormatter(object):
@@ -136,7 +139,7 @@ class OutputFormatter(object):
     def get_top_node(self):
         return self.top_node
 
-    def get_formatted(self, top_node):
+    def get_formatted(self, top_node, title=None):
         """Returns the body text of an article, and also the body article
         html if specified. Returns in (text, html) form
         """
@@ -154,16 +157,24 @@ class OutputFormatter(object):
         self.replace_with_text()
         self.remove_empty_tags()
         self.remove_trailing_media_div()
-        text = self.convert_to_text()
+        text = self.convert_to_text(title)
         return (text, html)
 
-    def convert_to_text(self):
+    def convert_to_text(self, title=None):
         text_elements = filter(
             None,
-            (self._extractor.extract_text(node) for node in self.get_top_node())
+            (self._extractor.extract_text(node, title=title) for node in self.get_top_node())
         )
+        flattened_elements =  chain.from_iterable(text_elements)
 
-        return '\n\n'.join(chain.from_iterable(text_elements))
+        # If the first element looks like a single word, it's most likely not the first
+        # sentence, but kind of a title article.
+        first_element = next(flattened_elements, None)
+        elements = ()
+        if first_element and len(first_element.split()) != 1:
+            elements = (first_element, )
+
+        return '\n\n'.join(chain(elements, flattened_elements))
 
     def convert_to_html(self):
         cleaned_node = self.parser.clean_article_html(self.get_top_node())

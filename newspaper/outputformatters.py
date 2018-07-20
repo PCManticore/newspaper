@@ -74,7 +74,7 @@ class NodeTextExclusion:
         if node.tag in self.EXCLUDED_TAGS:
             return True
         parent = node.getparent()
-        if parent and parent.tag in self.EXCLUDED_TAGS:
+        if parent is not None and parent.tag in self.EXCLUDED_TAGS:
             return True
         return False
 

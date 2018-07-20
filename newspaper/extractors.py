@@ -232,6 +232,26 @@ class ContentExtractor(object):
 
         return None
 
+    def _get_title_from_element(self, doc):
+        title_element = self.parser.getElementsByTag(doc, tag='title')
+        # no title found
+        if (title_element is None
+                or len(title_element) == 0
+                or title_element[0].getparent().tag == 'head'):
+            return ''
+
+        return self.parser.getText(title_element[0])
+
+    def _find_title_heuristic(self, doc):
+        title_text = ''
+        title_elements = self.parser.getElementsByTag(doc, tag='h1') or []
+        titles = [self.parser.getText(tag) for tag in title_elements]
+
+        # A couple of specific elements with titles
+        for elem in doc.cssselect('div[class=blogTitle]'):
+            titles.append(elem.text)
+        return titles
+
     def get_title(self, doc):
         """Fetch the article title and analyze it
 
@@ -249,14 +269,8 @@ class ContentExtractor(object):
         4. title starts with og:title, use og:title
         5. use title, after splitting
         """
-        title = ''
-        title_element = self.parser.getElementsByTag(doc, tag='title')
-        # no title found
-        if title_element is None or len(title_element) == 0:
-            return title
+        title_text = self._get_title_from_element(doc)
 
-        # title elem found
-        title_text = self.parser.getText(title_element[0])
         used_delimeter = False
 
         # title from h1
@@ -264,10 +278,8 @@ class ContentExtractor(object):
         # - too short texts (fewer than 2 words) are discarded
         # - clean double spaces
         title_text_h1 = ''
-        title_element_h1_list = self.parser.getElementsByTag(doc,
-                                                             tag='h1') or []
-        title_text_h1_list = [self.parser.getText(tag) for tag in
-                              title_element_h1_list]
+        title_text_h1_list = self._find_title_heuristic(doc)
+
         if title_text_h1_list:
             # sort by len and set the longest
             title_text_h1_list.sort(key=len, reverse=True)
@@ -349,7 +361,6 @@ class ContentExtractor(object):
         if len(filter_title.split(' ')) == 1:
             if len(filter_title_text_h1.split(' ')) > 1:
                 title = title_text_h1
-
         return title
 
     def split_title(self, title, splitter, hint=None):

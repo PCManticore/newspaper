@@ -7,6 +7,7 @@ __author__ = 'Lucas Ou-Yang'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2014, Lucas Ou-Yang'
 
+import re
 from itertools import chain
 from html import unescape
 import logging
@@ -42,6 +43,9 @@ class NodeTextExclusion:
         'audioplayer_container',
         'postfeedback',
     }
+    IGNORED_TEXT = re.compile(
+        'Permalink|(Share link)'
+    )
 
     def _has_ignored_class(self, node):
         return set(node.classes).intersection(self.IGNORED_CLASSES)
@@ -74,6 +78,11 @@ class NodeTextExclusion:
             return True
         return False
 
+    def _ignored_by_content(self, node):
+        if node.text:
+            return bool(self.IGNORED_TEXT.search(node.text))
+        return False
+
     def is_excluded(self, node):
         """Check if the given node should be completely excluded from the output"""
         filter_methods = [
@@ -82,6 +91,7 @@ class NodeTextExclusion:
             self._looks_like_object_description,
             self._looks_like_page_navigation,
             self._has_ignored_class,
+            self._ignored_by_content,
         ]
         for method in filter_methods:
             if method(node):

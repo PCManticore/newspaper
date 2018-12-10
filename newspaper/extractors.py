@@ -253,7 +253,7 @@ class ContentExtractor(object):
                 titles.append(elem.text)
         for elem in doc.cssselect(f'h2[class=post-title]'):
             titles.append(elem.text)
-        return titles
+        return list(filter(None, titles))
 
     def get_title(self, doc):
         """Fetch the article title and analyze it
